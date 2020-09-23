@@ -1,0 +1,77 @@
+version: '3.8'
+
+x-cfssl: &cfssl
+  image: ${REPOSITORY:-takumi/cfssl}:latest
+  command:
+    - cfssl
+    - serve
+    - -address=0.0.0.0
+    - -port=8888
+    - -min-tls-version=1.2
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
+    interval: 1s
+    timeout: 3s
+    retries: 3
+    start_period: 60s
+  cap_add:
+    - FOWNER
+    - CHOWN
+    - SETUID
+    - SETGID
+    - NET_BIND_SERVICE
+  cap_drop:
+    - ALL
+  networks:
+    - cfssl
+  expose:
+    - 8888
+  ports:
+    - 8888:8888
+  environment:
+    - "TZ=${TZ:-Asia/Tokyo}"
+
+services:
+  #
+  # CFSSL
+  #
+  cfssl:
+    <<: *cfssl
+    hostname: cfssl
+    container_name: cfssl
+
+  #
+  # MySQL
+  #
+  # mysql:
+  #   image: mysql:${MYSQL_BRANCH:-5.7}
+  #   hostname: mysql
+  #   container_name: mysql
+  #   cap_add:
+  #     - FOWNER
+  #     - CHOWN
+  #     - SETUID
+  #     - SETGID
+  #     - NET_BIND_SERVICE
+  #   cap_drop:
+  #     - ALL
+  #   networks:
+  #     - cfssl
+  #   volumes:
+  #     - mysql-config:/etc/mysql
+  #     - mysql-data:/var/lib/mysql
+  #   environment:
+  #     - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-cfssl}"
+  #     - "MYSQL_DATABASE=${MYSQL_DATABASE:-cfssl}"
+  #     - "MYSQL_USER=${MYSQL_USER:-cfssl}"
+  #     - "MYSQL_PASSWORD=${MYSQL_PASSWORD:-cfssl}"
+  #     - "TZ=${TZ:-Asia/Tokyo}"
+
+networks:
+  cfssl:
+    name: cfssl
+# volumes:
+#   mysql-config:
+#     name: mysql-config
+#   mysql-data:
+#     name: mysql-data

@@ -1,0 +1,8 @@
+.env
+.envrc
+.git
+.gitignore
+LICENSE
+Makefile
+README.md
+docker-compose.yml

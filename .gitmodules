@@ -1,0 +1,3 @@
+[submodule "cfssl"]
+	path = cfssl
+	url = https://github.com/cloudflare/cfssl.git
