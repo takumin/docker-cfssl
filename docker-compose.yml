@@ -2,12 +2,12 @@ version: '3.8'
 
 x-cfssl: &cfssl
   image: ${REPOSITORY:-takumi/cfssl}:latest
-  command:
-    - cfssl
-    - serve
-    - -address=0.0.0.0
-    - -port=8888
-    - -min-tls-version=1.2
+  command: >-
+    sh -c "
+    echo '{\"driver\":\"sqlite3\",\"data_source\":\"certstore_development.db\"}' > db-config.json &&
+    goose -path /usr/local/share/cfssl/sqlite up &&
+    cfssl serve -address=0.0.0.0 -port=8888 -min-tls-version=1.2 -db-config db-config.json
+    "
   healthcheck:
     test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
     interval: 1s
