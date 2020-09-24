@@ -25,21 +25,36 @@ x-cfssl: &cfssl
     - ALL
   networks:
     - cfssl
+  environment:
+    - "TZ=${TZ:-Asia/Tokyo}"
+
+x-cfssl-main: &cfssl-main
+  <<: *cfssl
   expose:
     - 8888
   ports:
     - 8888:8888
-  environment:
-    - "TZ=${TZ:-Asia/Tokyo}"
 
 services:
   #
   # CFSSL
   #
   cfssl:
-    <<: *cfssl
+    <<: *cfssl-main
     hostname: cfssl
     container_name: cfssl
+  cfssl-0:
+    <<: *cfssl
+    hostname: cfssl-0
+    container_name: cfssl-0
+  cfssl-1:
+    <<: *cfssl
+    hostname: cfssl-1
+    container_name: cfssl-1
+  cfssl-2:
+    <<: *cfssl
+    hostname: cfssl-2
+    container_name: cfssl-2
 
   #
   # MySQL
