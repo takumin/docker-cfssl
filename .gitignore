@@ -1,2 +1,5 @@
 .env
 .envrc
+*.csr
+*.json
+*.pem

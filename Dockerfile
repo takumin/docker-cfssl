@@ -19,7 +19,7 @@ ENV CGO_ENABLED="1"
 ENV GOPROXY="off"
 ENV GOFLAGS="-mod=vendor"
 ENV GOBIN="/usr/local/bin"
-ENV LDFLAGS="-s -w -extldflags -static"
+ENV LDFLAGS="-s -w -extldflags \"-static\""
 
 WORKDIR /go/src/github.com/cloudflare/cfssl
 COPY cfssl .

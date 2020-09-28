@@ -2,13 +2,7 @@ version: '3.8'
 
 x-cfssl: &cfssl
   image: ${REPOSITORY:-takumi/cfssl}:latest
-  command: >-
-    sh -c "
-    dockerize -timeout 30s -wait tcp://mysql:3306 &&
-    echo '{\"driver\":\"mysql\",\"data_source\":\"cfssl:cfssl@tcp(mysql:3306)/cfssl?parseTime=true\"}' > db-config.json &&
-    goose -dir /usr/local/share/cfssl/mysql mysql \"cfssl:cfssl@tcp(mysql:3306)/cfssl?parseTime=true\" up &&
-    cfssl serve -address=0.0.0.0 -port=8888 -min-tls-version=1.2 -db-config db-config.json
-    "
+  command: cfssl serve
   healthcheck:
     test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
     interval: 1s
@@ -25,8 +19,12 @@ x-cfssl: &cfssl
     - ALL
   networks:
     - cfssl
+  secrets:
+    - cfssl_serve_ca
+    - cfssl_serve_ca_key
   environment:
     - "TZ=${TZ:-Asia/Tokyo}"
+  restart: unless-stopped
 
 x-cfssl-main: &cfssl-main
   <<: *cfssl
@@ -93,3 +91,8 @@ volumes:
     name: mysql-config
   mysql-data:
     name: mysql-data
+secrets:
+  cfssl_serve_ca:
+    file: ./ca.pem
+  cfssl_serve_ca_key:
+    file: ./ca-key.pem
