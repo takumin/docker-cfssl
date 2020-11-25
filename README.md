@@ -3,9 +3,10 @@ CFSSL for Docker Container Image
 
 # docker-compose
 ```bash
- $ cfssl print-defaults config > ca-config.json
- $ cfssl print-defaults csr > ca-csr.json
- $ cfssl gencert -initca ca-csr.json | cfssljson -bare ca -
- $ chmod 0644 ca-key.pem
  $ docker-compose up -d
 ```
+
+# Reference
+- https://propellered.com/posts/cfssl_setting_up/
+- https://propellered.com/posts/cfssl_setting_up_ocsp_api/
+- https://propellered.com/posts/cfssl_revoking_certs_ocsp_reponder/

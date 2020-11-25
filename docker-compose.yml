@@ -19,10 +19,13 @@ x-cfssl: &cfssl
     - ALL
   networks:
     - cfssl
-  secrets:
-    - cfssl_serve_ca
-    - cfssl_serve_ca_key
   environment:
+    - "CFSSL_CERTDB_TYPE=${CFSSL_CERTDB_TYPE:-mysql}"
+    - "CFSSL_CERTDB_USER=${CFSSL_CERTDB_USER:-cfssl}"
+    - "CFSSL_CERTDB_PASS=${CFSSL_CERTDB_PASS:-cfssl}"
+    - "CFSSL_CERTDB_HOST=${CFSSL_CERTDB_HOST:-mysql}"
+    - "CFSSL_CERTDB_PORT=${CFSSL_CERTDB_PORT:-3306}"
+    - "CFSSL_CERTDB_NAME=${CFSSL_CERTDB_NAME:-cfssl}"
     - "TZ=${TZ:-Asia/Tokyo}"
   restart: unless-stopped
 
@@ -30,8 +33,10 @@ x-cfssl-main: &cfssl-main
   <<: *cfssl
   expose:
     - 8888
+    - 8889
   ports:
     - 8888:8888
+    - 8889:8889
 
 services:
   #
@@ -58,7 +63,8 @@ services:
   # MySQL
   #
   mysql:
-    image: mysql:${MYSQL_BRANCH:-5.6}
+    image: mysql:${MYSQL_BRANCH:-5.7}
+    command: --sql-mode="ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
     hostname: mysql
     container_name: mysql
     cap_add:
@@ -91,8 +97,3 @@ volumes:
     name: mysql-config
   mysql-data:
     name: mysql-data
-secrets:
-  cfssl_serve_ca:
-    file: ./ca.pem
-  cfssl_serve_ca_key:
-    file: ./ca-key.pem

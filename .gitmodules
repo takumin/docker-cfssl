@@ -3,4 +3,4 @@
 	url = https://github.com/cloudflare/cfssl.git
 [submodule "goose"]
 	path = goose
-	url = https://github.com/pressly/goose.git
+	url = https://bitbucket.org/liamstask/goose.git
