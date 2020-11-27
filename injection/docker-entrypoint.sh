@@ -25,32 +25,55 @@ else
 		{
 			"signing": {
 				"default": {
-					"expiry": "8760h",
-					"crl_url": "http://localhost:8888/crl",
-					"ocsp_url": "http://localhost:8889",
-					"usages": [
-						"signing",
-						"key encipherment",
-						"client auth"
-					]
+					"expiry": "720h"
 				},
 				"profiles": {
-					"ocsp": {
-						"usages": ["digital signature", "ocsp signing"],
-						"expiry": "8760h"
+					"root": {
+						"expiry": "87600h",
+						"usages": [
+							"cert sign",
+							"crl sign"
+						],
+						"ca_constraint": {
+							"is_ca": true,
+							"max_path_len": 1,
+							"max_path_len_zero": false
+						}
 					},
 					"intermediate": {
-						"usages": ["cert sign", "crl sign"],
+						"expiry": "43800h",
+						"usages": [
+							"cert sign",
+							"crl sign"
+						],
+						"ca_constraint": {
+							"is_ca": true,
+							"max_path_len": 0,
+							"max_path_len_zero": true
+						}
+					},
+					"ocsp": {
 						"expiry": "8760h",
-						"ca_constraint": {"is_ca": true}
+						"usages": [
+							"digital signature",
+							"ocsp signing"
+						]
 					},
 					"server": {
-						"usages": ["signing", "key encipherment", "server auth"],
-						"expiry": "8760h"
+						"expiry": "720h",
+						"usages": [
+							"signing",
+							"key encipherment",
+							"server auth"
+						]
 					},
 					"client": {
-						"usages": ["signing", "key encipherment", "client auth"],
-						"expiry": "8760h"
+						"expiry": "720h",
+						"usages": [
+							"signing",
+							"key encipherment",
+							"client auth"
+						]
 					}
 				}
 			}
