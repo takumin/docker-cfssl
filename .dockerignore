@@ -8,5 +8,7 @@ README.md
 docker-compose.yml
 *.key
 *.csr
+*.crt
 *.pem
 *.json
+testdata/

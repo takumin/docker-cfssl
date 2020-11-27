@@ -2,5 +2,8 @@
 .envrc
 *.key
 *.csr
+*.crt
 *.pem
 *.json
+testdata/*
+!testdata/.gitkeep
