@@ -105,8 +105,8 @@ else
 	fi
 fi
 
-if [ -n "${CFSSL_OCSP_CA_CSR_JSON:-}" ]; then
-	echo "${CFSSL_OCSP_CA_CSR_JSON}" > "/etc/cfssl/lower-ocsp-csr.json"
+if [ -n "${CFSSL_OCSP_SERVE_CSR_JSON:-}" ]; then
+	echo "${CFSSL_OCSP_SERVE_CSR_JSON}" > "/etc/cfssl/lower-ocsp-csr.json"
 else
 	if [ ! -f "/etc/cfssl/lower-ocsp-csr.json" ]; then
 		echo 'Generate /etc/cfssl/lower-ocsp-csr.json'
@@ -172,7 +172,7 @@ fi
 # OCSP Responder
 ##############################################################################
 
-if [ -z "${CFSSL_OCSP_CA_CRT_PEM:-}" ] || [ -z "${CFSSL_OCSP_CA_KEY_PEM:-}" ]; then
+if [ -z "${CFSSL_OCSP_SERVE_CRT_PEM:-}" ] || [ -z "${CFSSL_OCSP_SERVE_KEY_PEM:-}" ]; then
 	cfssl gencert \
 		-ca="/etc/cfssl/lower-ca-crt.pem" \
 		-ca-key="/etc/cfssl/lower-ca-key.pem" \
@@ -187,8 +187,8 @@ if [ -z "${CFSSL_OCSP_CA_CRT_PEM:-}" ] || [ -z "${CFSSL_OCSP_CA_KEY_PEM:-}" ]; t
 
 	rm "/tmp/cfssl"
 else
-	echo "${CFSSL_OCSP_CA_CRT_PEM}" > "/etc/cfssl/lower-ocsp-crt.pem"
-	echo "${CFSSL_OCSP_CA_KEY_PEM}" > "/etc/cfssl/lower-ocsp-key.pem"
+	echo "${CFSSL_OCSP_SERVE_CRT_PEM}" > "/etc/cfssl/lower-ocsp-crt.pem"
+	echo "${CFSSL_OCSP_SERVE_KEY_PEM}" > "/etc/cfssl/lower-ocsp-key.pem"
 fi
 
 ##############################################################################
