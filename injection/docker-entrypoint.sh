@@ -106,12 +106,12 @@ else
 fi
 
 if [ -n "${CFSSL_OCSP_SERVE_CSR_JSON:-}" ]; then
-	echo "${CFSSL_OCSP_SERVE_CSR_JSON}" > "/etc/cfssl/lower-ocsp-csr.json"
+	echo "${CFSSL_OCSP_SERVE_CSR_JSON}" > "/etc/cfssl/ocsp-serve-csr.json"
 else
-	if [ ! -f "/etc/cfssl/lower-ocsp-csr.json" ]; then
-		echo 'Generate /etc/cfssl/lower-ocsp-csr.json'
+	if [ ! -f "/etc/cfssl/ocsp-serve-csr.json" ]; then
+		echo 'Generate /etc/cfssl/ocsp-serve-csr.json'
 
-		cat > "/etc/cfssl/lower-ocsp-csr.json" <<- __EOF__
+		cat > "/etc/cfssl/ocsp-serve-csr.json" <<- __EOF__
 		{
 			"CN": "OCSP Responder",
 			"key": {
@@ -178,17 +178,17 @@ if [ -z "${CFSSL_OCSP_SERVE_CRT_PEM:-}" ] || [ -z "${CFSSL_OCSP_SERVE_KEY_PEM:-}
 		-ca-key="/etc/cfssl/lower-ca-key.pem" \
 		-config="/etc/cfssl/config.json" \
 		-profile="ocsp" \
-		"/etc/cfssl/lower-ocsp-csr.json" \
+		"/etc/cfssl/ocsp-serve-csr.json" \
 		| cfssljson -bare -stdout > "/tmp/cfssl"
 
-	awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ocsp-crt.pem"
-	awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ocsp-key.pem"
-	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ocsp-csr.pem"
+	awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-crt.pem"
+	awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-key.pem"
+	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-csr.pem"
 
 	rm "/tmp/cfssl"
 else
-	echo "${CFSSL_OCSP_SERVE_CRT_PEM}" > "/etc/cfssl/lower-ocsp-crt.pem"
-	echo "${CFSSL_OCSP_SERVE_KEY_PEM}" > "/etc/cfssl/lower-ocsp-key.pem"
+	echo "${CFSSL_OCSP_SERVE_CRT_PEM}" > "/etc/cfssl/ocsp-serve-crt.pem"
+	echo "${CFSSL_OCSP_SERVE_KEY_PEM}" > "/etc/cfssl/ocsp-serve-key.pem"
 fi
 
 ##############################################################################
@@ -219,8 +219,8 @@ fi
 
 CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -ca=/etc/cfssl/lower-ca-crt.pem"
 CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -ca-key=/etc/cfssl/lower-ca-key.pem"
-CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -responder=lower-ocsp-crt.pem"
-CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -responder-key=lower-ocsp-key.pem"
+CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -responder=ocsp-serve-crt.pem"
+CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -responder-key=ocsp-serve-key.pem"
 CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -config=/etc/cfssl/config.json"
 CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -db-config=/etc/cfssl/db-config.json"
 CFSSL_SERVE_ARGS="${CFSSL_SERVE_ARGS:-} -address=${CFSSL_SERVE_LISTEN_ADDR:-"0.0.0.0"}"
