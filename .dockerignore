@@ -6,6 +6,7 @@ LICENSE
 Makefile
 README.md
 docker-compose.yml
+*.key
 *.csr
-*.json
 *.pem
+*.json
