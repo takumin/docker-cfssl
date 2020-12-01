@@ -63,8 +63,8 @@ all: build up
 
 .PHONY: build
 build:
-	@docker build --target build -t $(REPOSITORY):build $(BUILD_ARGS) .
-	@docker build -t $(REPOSITORY):latest $(BUILD_ARGS) .
+	@docker build --cache-from docker.io/library/golang:$(GOLANG_BRANCH) --target build -t $(REPOSITORY):build $(BUILD_ARGS) .
+	@docker build --cache-from docker.io/library/alpine:$(ALPINE_BRANCH) --target service -t $(REPOSITORY):latest $(BUILD_ARGS) .
 
 #
 # Test Rules

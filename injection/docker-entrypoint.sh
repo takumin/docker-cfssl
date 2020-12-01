@@ -11,6 +11,10 @@ if [ ! -d "/etc/cfssl" ]; then
 	mkdir -p "/etc/cfssl"
 fi
 
+if [ ! -d "/var/lib/cfssl" ]; then
+	mkdir -p "/var/lib/cfssl"
+fi
+
 ##############################################################################
 # Docker Secrets
 ##############################################################################
@@ -54,6 +58,47 @@ fi
 if [ -r "/run/secrets/cfssl_ocsp_serve_key_pem" ]; then
 	CFSSL_OCSP_SERVE_KEY_PEM="$(cat /run/secrets/cfssl_ocsp_serve_key_pem)"
 fi
+
+##############################################################################
+# Databases
+##############################################################################
+
+if [ -z "${CFSSL_CERTDB_TYPE:-}" ]; then
+	CFSSL_CERTDB_TYPE="sqlite3"
+fi
+
+case "${CFSSL_CERTDB_TYPE}" in
+	"sqlite3")
+		CFSSL_CERTDB_SRC="/var/lib/cfssl/certstore.db"
+		;;
+	"postgres")
+		CFSSL_CERTDB_SRC="${CFSSL_CERTDB_TYPE}://${CFSSL_CERTDB_USER}:${CFSSL_CERTDB_PASS}@${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT}/${CFSSL_CERTDB_NAME}?sslmode=disable"
+		dockerize -timeout "${CFSSL_CERTDB_WAIT:-"30s"}" -wait "tcp://${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT}"
+		;;
+	"mysql")
+		CFSSL_CERTDB_SRC="${CFSSL_CERTDB_USER}:${CFSSL_CERTDB_PASS}@tcp(${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT})/${CFSSL_CERTDB_NAME}?parseTime=true"
+		dockerize -timeout "${CFSSL_CERTDB_WAIT:-"30s"}" -wait "tcp://${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT}"
+		;;
+	*)
+		echo "Invalid Environment Variable: CFSSL_CERTDB_TYPE: ${CFSSL_CERTDB_TYPE}"
+		exit 1
+		;;
+esac
+
+cat > "/etc/cfssl/db-config.json" <<- __EOF__
+{
+	"driver": "${CFSSL_CERTDB_TYPE}",
+	"data_source": "${CFSSL_CERTDB_SRC}"
+}
+__EOF__
+
+{
+	echo "service:"
+	echo "  driver: ${CFSSL_CERTDB_TYPE}"
+	echo "  open: ${CFSSL_CERTDB_SRC}"
+} > "/usr/local/share/cfssl/${CFSSL_CERTDB_TYPE}/dbconf.yml"
+
+goose -env "service" -path "/usr/local/share/cfssl/${CFSSL_CERTDB_TYPE}" up
 
 ##############################################################################
 # Configuration
@@ -282,28 +327,6 @@ else
 	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-csr.pem"
 
 	rm "/tmp/cfssl"
-fi
-
-##############################################################################
-# Databases
-##############################################################################
-
-if [ "${CFSSL_CERTDB_TYPE}" = "mysql" ]; then
-	cat > "/etc/cfssl/db-config.json" <<- __EOF__
-	{
-		"driver": "${CFSSL_CERTDB_TYPE}",
-		"data_source": "${CFSSL_CERTDB_USER}:${CFSSL_CERTDB_PASS}@tcp(${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT})/${CFSSL_CERTDB_NAME}?parseTime=true"
-	}
-	__EOF__
-
-	{
-		echo "production:"
-		echo "  driver: ${CFSSL_CERTDB_TYPE}"
-		echo "  open: ${CFSSL_CERTDB_USER}:${CFSSL_CERTDB_PASS}@tcp(${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT})/${CFSSL_CERTDB_NAME}?parseTime=true"
-	} > "/usr/local/share/cfssl/${CFSSL_CERTDB_TYPE}/dbconf.yml"
-
-	dockerize -timeout 30s -wait "tcp://${CFSSL_CERTDB_HOST}:${CFSSL_CERTDB_PORT}"
-	goose -env "production" -path "/usr/local/share/cfssl/${CFSSL_CERTDB_TYPE}" up
 fi
 
 ##############################################################################

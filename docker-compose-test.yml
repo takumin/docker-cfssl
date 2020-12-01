@@ -1,0 +1,105 @@
+version: '3.8'
+
+x-cfssl: &cfssl
+  image: ${REPOSITORY:-takumi/cfssl}:latest
+  command: cfssl serve
+  healthcheck:
+    test:         ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
+    interval:     1s
+    timeout:      3s
+    retries:      3
+    start_period: 60s
+  cap_add:
+    - FOWNER
+    - CHOWN
+    - SETUID
+    - SETGID
+  cap_drop:
+    - ALL
+  networks:
+    - cfssl
+  environment:
+    TZ: Asia/Tokyo
+  restart: unless-stopped
+
+services:
+  #
+  # CFSSL
+  #
+  cfssl-sqlite:
+    <<: *cfssl
+    hostname: cfssl-sqlite
+    container_name: cfssl-sqlite
+  cfssl-mysql:
+    <<: *cfssl
+    hostname: cfssl-mysql
+    container_name: cfssl-mysql
+    environment:
+      CFSSL_CERTDB_TYPE: mysql
+      CFSSL_CERTDB_HOST: mysql
+      CFSSL_CERTDB_PORT: 3306
+      CFSSL_CERTDB_USER: cfssl
+      CFSSL_CERTDB_PASS: cfssl
+      CFSSL_CERTDB_NAME: cfssl
+  cfssl-postgres:
+    <<: *cfssl
+    hostname: cfssl-postgres
+    container_name: cfssl-postgres
+    environment:
+      CFSSL_CERTDB_TYPE: postgres
+      CFSSL_CERTDB_HOST: postgres
+      CFSSL_CERTDB_PORT: 5432
+      CFSSL_CERTDB_USER: cfssl
+      CFSSL_CERTDB_PASS: cfssl
+      CFSSL_CERTDB_NAME: cfssl
+
+  #
+  # MySQL
+  #
+  mysql:
+    image: mysql:${MYSQL_BRANCH:-5}
+    command: --sql-mode="ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+    hostname: mysql
+    container_name: mysql
+    cap_add:
+      - FOWNER
+      - CHOWN
+      - SETUID
+      - SETGID
+    cap_drop:
+      - ALL
+    networks:
+      - cfssl
+    environment:
+      MYSQL_ROOT_PASSWORD: cfssl
+      MYSQL_DATABASE:      cfssl
+      MYSQL_USER:          cfssl
+      MYSQL_PASSWORD:      cfssl
+      TZ:                  Asia/Tokyo
+
+  #
+  # PostgreSQL
+  #
+  postgres:
+    image: postgres:${POSTGRES_BRANCH:-9-alpine}
+    hostname: postgres
+    container_name: postgres
+    cap_add:
+      - FOWNER
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_READ_SEARCH
+    cap_drop:
+      - ALL
+    networks:
+      - cfssl
+    environment:
+      POSTGRES_PASSWORD: cfssl
+      POSTGRES_USER:     cfssl
+      POSTGRES_DB:       cfssl
+      TZ:                Asia/Tokyo
+
+networks:
+  cfssl:
+    name: cfssl

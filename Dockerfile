@@ -38,7 +38,7 @@ RUN go install -ldflags "-X github.com/cloudflare/cfssl/cli/version.version=${CF
 RUN mkdir /usr/local/share/cfssl
 RUN cp -r certdb/pg /usr/local/share/cfssl/postgres
 RUN cp -r certdb/mysql /usr/local/share/cfssl/mysql
-RUN cp -r certdb/sqlite /usr/local/share/cfssl/sqlite
+RUN cp -r certdb/sqlite /usr/local/share/cfssl/sqlite3
 
 RUN upx -1 /usr/local/bin/*
 

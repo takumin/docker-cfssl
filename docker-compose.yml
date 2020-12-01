@@ -4,96 +4,33 @@ x-cfssl: &cfssl
   image: ${REPOSITORY:-takumi/cfssl}:latest
   command: cfssl serve
   healthcheck:
-    test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
-    interval: 1s
-    timeout: 3s
-    retries: 3
+    test:         ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/v1/cfssl/health"]
+    interval:     1s
+    timeout:      3s
+    retries:      3
     start_period: 60s
   cap_add:
     - FOWNER
     - CHOWN
     - SETUID
     - SETGID
-    - NET_BIND_SERVICE
   cap_drop:
     - ALL
   networks:
     - cfssl
   environment:
-    - "CFSSL_CERTDB_TYPE=${CFSSL_CERTDB_TYPE:-mysql}"
-    - "CFSSL_CERTDB_USER=${CFSSL_CERTDB_USER:-cfssl}"
-    - "CFSSL_CERTDB_PASS=${CFSSL_CERTDB_PASS:-cfssl}"
-    - "CFSSL_CERTDB_HOST=${CFSSL_CERTDB_HOST:-mysql}"
-    - "CFSSL_CERTDB_PORT=${CFSSL_CERTDB_PORT:-3306}"
-    - "CFSSL_CERTDB_NAME=${CFSSL_CERTDB_NAME:-cfssl}"
-    - "TZ=${TZ:-Asia/Tokyo}"
+    TZ: Asia/Tokyo
   restart: unless-stopped
-
-x-cfssl-main: &cfssl-main
-  <<: *cfssl
-  expose:
-    - 8888
-    - 8889
-  ports:
-    - 8888:8888
-    - 8889:8889
 
 services:
   #
   # CFSSL
   #
   cfssl:
-    <<: *cfssl-main
+    <<: *cfssl
     hostname: cfssl
     container_name: cfssl
-  cfssl-0:
-    <<: *cfssl
-    hostname: cfssl-0
-    container_name: cfssl-0
-  cfssl-1:
-    <<: *cfssl
-    hostname: cfssl-1
-    container_name: cfssl-1
-  cfssl-2:
-    <<: *cfssl
-    hostname: cfssl-2
-    container_name: cfssl-2
-
-  #
-  # MySQL
-  #
-  mysql:
-    image: mysql:${MYSQL_BRANCH:-5.7}
-    command: --sql-mode="ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
-    hostname: mysql
-    container_name: mysql
-    cap_add:
-      - FOWNER
-      - CHOWN
-      - SETUID
-      - SETGID
-      - NET_BIND_SERVICE
-    cap_drop:
-      - ALL
-    networks:
-      - cfssl
-    ports:
-      - 3306:3306
-    volumes:
-      - mysql-config:/etc/mysql
-      - mysql-data:/var/lib/mysql
-    environment:
-      - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-cfssl}"
-      - "MYSQL_DATABASE=${MYSQL_DATABASE:-cfssl}"
-      - "MYSQL_USER=${MYSQL_USER:-cfssl}"
-      - "MYSQL_PASSWORD=${MYSQL_PASSWORD:-cfssl}"
-      - "TZ=${TZ:-Asia/Tokyo}"
 
 networks:
   cfssl:
     name: cfssl
-volumes:
-  mysql-config:
-    name: mysql-config
-  mysql-data:
-    name: mysql-data
