@@ -100,6 +100,22 @@ services:
       POSTGRES_DB:       cfssl
       TZ:                Asia/Tokyo
 
+  #
+  # DockerHub - System Under Test
+  #
+  sut:
+    build: .
+    entrypoint: /bin/sh -eux -c
+    command: |-
+      exec 1>&2
+      type awk
+      type cfssl
+      type cfssljson
+      type goose
+      type runsvdir
+      cfssl version
+      cfssljson -version
+
 networks:
   cfssl:
     name: cfssl
