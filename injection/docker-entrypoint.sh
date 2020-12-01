@@ -229,7 +229,7 @@ if [ -n "${CFSSL_OCSP_SERVE_CSR_JSON:-}" ]; then
 	echo "${CFSSL_OCSP_SERVE_CSR_JSON}" > "/etc/cfssl/ocsp-serve-csr.json"
 else
 	if [ ! -f "/etc/cfssl/ocsp-serve-csr.json" ]; then
-		echo 'Generate /etc/cfssl/ocsp-serve-csr.json'
+		echo 'Generate file:/etc/cfssl/ocsp-serve-csr.json'
 
 		cat > "/etc/cfssl/ocsp-serve-csr.json" <<- __EOF__
 		{
