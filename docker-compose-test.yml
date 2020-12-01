@@ -104,17 +104,40 @@ services:
   # DockerHub - System Under Test
   #
   sut:
-    build: .
-    entrypoint: /bin/sh -eux -c
-    command: |-
-      exec 1>&2
-      type awk
-      type cfssl
-      type cfssljson
-      type goose
-      type runsvdir
-      cfssl version
-      cfssljson -version
+    build:
+      context: .
+      target: service
+      args:
+        - GOLANG_BRANCH=${GOLANG_BRANCH:-alpine}
+        - ALPINE_BRANCH=${ALPINE_BRANCH:-latest}
+      cache_from:
+        - golang:${GOLANG_BRANCH:-alpine}
+        - alpine:${ALPINE_BRANCH:-latest}
+    image: ${REPOSITORY:-takumi/cfssl}:latest
+    hostname: sut
+    container_name: sut
+    cap_add:
+      - FOWNER
+      - CHOWN
+      - SETUID
+      - SETGID
+    cap_drop:
+      - ALL
+    networks:
+      - cfssl
+    environment:
+      TZ: Asia/Tokyo
+    command: >-
+      /bin/sh -eux -c '
+      exec 1>&2;
+      type awk;
+      type cfssl;
+      type cfssljson;
+      type goose;
+      type runsvdir;
+      cfssl version;
+      cfssljson -version;
+      '
 
 networks:
   cfssl:
