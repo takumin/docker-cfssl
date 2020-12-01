@@ -18,6 +18,9 @@ x-cfssl: &cfssl
     - ALL
   networks:
     - cfssl
+  ports:
+    - 8888:8888
+    - 8889:8889
   environment:
     TZ: Asia/Tokyo
   restart: unless-stopped

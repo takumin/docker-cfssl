@@ -114,8 +114,6 @@ services:
         - golang:${GOLANG_BRANCH:-alpine}
         - alpine:${ALPINE_BRANCH:-latest}
     image: ${REPOSITORY:-takumi/cfssl}:latest
-    hostname: sut
-    container_name: sut
     cap_add:
       - FOWNER
       - CHOWN
