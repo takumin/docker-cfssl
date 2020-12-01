@@ -260,15 +260,34 @@ if [ -n "${CFSSL_ROOT_CA_KEY_PEM:-}" ] && [ -n "${CFSSL_ROOT_CA_CRT_PEM:-}" ]; t
 	echo "${CFSSL_ROOT_CA_CRT_PEM}" > "/etc/cfssl/root-ca-crt.pem"
 else
 	echo 'Generate file:/etc/cfssl/root-ca-key.pem'
+	echo 'Generate file:/etc/cfssl/root-ca-csr.pem'
 	echo 'Generate file:/etc/cfssl/root-ca-crt.pem'
 
-	cfssl gencert -initca "/etc/cfssl/root-ca-csr.json" | cfssljson -bare -stdout > "/tmp/cfssl"
+	cfssl gencert \
+		-initca \
+		-config="/etc/cfssl/config.json" \
+		-profile="root" \
+		"/etc/cfssl/root-ca-csr.json" \
+		| cfssljson -bare -stdout > "/tmp/cfssl"
 
 	awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' "/tmp/cfssl" > "/etc/cfssl/root-ca-crt.pem"
 	awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' "/tmp/cfssl" > "/etc/cfssl/root-ca-key.pem"
 	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/root-ca-csr.pem"
 
 	rm "/tmp/cfssl"
+
+	echo 'Re-Signed file:/etc/cfssl/root-ca-crt.pem'
+	cfssl sign \
+		-ca="/etc/cfssl/root-ca-crt.pem" \
+		-ca-key="/etc/cfssl/root-ca-key.pem" \
+		-config="/etc/cfssl/config.json" \
+		-db-config="/etc/cfssl/db-config.json" \
+		-profile="root" \
+		"/etc/cfssl/root-ca-csr.pem" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' \
+		> "/tmp/cfssl"
+	mv "/tmp/cfssl" "/etc/cfssl/root-ca-crt.pem"
 fi
 
 ##############################################################################
