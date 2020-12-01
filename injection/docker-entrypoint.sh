@@ -283,21 +283,31 @@ if [ -n "${CFSSL_LOWER_CA_KEY_PEM:-}" ] && [ -n "${CFSSL_LOWER_CA_CRT_PEM:-}" ];
 	echo "${CFSSL_LOWER_CA_CRT_PEM}" > "/etc/cfssl/lower-ca-crt.pem"
 else
 	echo 'Generate file:/etc/cfssl/lower-ca-key.pem'
-	echo 'Generate file:/etc/cfssl/lower-ca-crt.pem'
+	cfssl genkey \
+		"/etc/cfssl/lower-ca-csr.json" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' \
+		> "/etc/cfssl/lower-ca-key.pem"
 
-	cfssl gencert \
+	echo 'Generate file:/etc/cfssl/lower-ca-csr.pem'
+	cfssl gencsr \
+		-key="/etc/cfssl/lower-ca-key.pem" \
+		"/etc/cfssl/lower-ca-csr.json" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' \
+		> "/etc/cfssl/lower-ca-csr.pem"
+
+	echo 'Generate file:/etc/cfssl/lower-ca-crt.pem'
+	cfssl sign \
 		-ca="/etc/cfssl/root-ca-crt.pem" \
 		-ca-key="/etc/cfssl/root-ca-key.pem" \
 		-config="/etc/cfssl/config.json" \
+		-db-config="/etc/cfssl/db-config.json" \
 		-profile="intermediate" \
-		"/etc/cfssl/lower-ca-csr.json" \
-		| cfssljson -bare -stdout > "/tmp/cfssl"
-
-	awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ca-crt.pem"
-	awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ca-key.pem"
-	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/lower-ca-csr.pem"
-
-	rm "/tmp/cfssl"
+		"/etc/cfssl/lower-ca-csr.pem" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' \
+		> "/etc/cfssl/lower-ca-crt.pem"
 fi
 
 ##############################################################################
@@ -312,21 +322,31 @@ if [ -n "${CFSSL_OCSP_SERVE_KEY_PEM:-}" ] && [ -n "${CFSSL_OCSP_SERVE_CRT_PEM:-}
 	echo "${CFSSL_OCSP_SERVE_CRT_PEM}" > "/etc/cfssl/ocsp-serve-crt.pem"
 else
 	echo 'Generate file:/etc/cfssl/ocsp-serve-key.pem'
-	echo 'Generate file:/etc/cfssl/ocsp-serve-crt.pem'
+	cfssl genkey \
+		"/etc/cfssl/ocsp-serve-csr.json" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' \
+		> "/etc/cfssl/ocsp-serve-key.pem"
 
-	cfssl gencert \
+	echo 'Generate file:/etc/cfssl/ocsp-serve-csr.pem'
+	cfssl gencsr \
+		-key="/etc/cfssl/ocsp-serve-key.pem" \
+		"/etc/cfssl/ocsp-serve-csr.json" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' \
+		> "/etc/cfssl/ocsp-serve-csr.pem"
+
+	echo 'Generate file:/etc/cfssl/ocsp-serve-crt.pem'
+	cfssl sign \
 		-ca="/etc/cfssl/lower-ca-crt.pem" \
 		-ca-key="/etc/cfssl/lower-ca-key.pem" \
 		-config="/etc/cfssl/config.json" \
+		-db-config="/etc/cfssl/db-config.json" \
 		-profile="ocsp" \
-		"/etc/cfssl/ocsp-serve-csr.json" \
-		| cfssljson -bare -stdout > "/tmp/cfssl"
-
-	awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-crt.pem"
-	awk '/^-----BEGIN .* PRIVATE KEY-----$/,/^-----END .* PRIVATE KEY-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-key.pem"
-	awk '/^-----BEGIN CERTIFICATE REQUEST-----$/,/^-----END CERTIFICATE REQUEST-----$/' "/tmp/cfssl" > "/etc/cfssl/ocsp-serve-csr.pem"
-
-	rm "/tmp/cfssl"
+		"/etc/cfssl/ocsp-serve-csr.pem" \
+		| cfssljson -bare -stdout \
+		| awk '/^-----BEGIN CERTIFICATE-----$/,/^-----END CERTIFICATE-----$/' \
+		> "/etc/cfssl/ocsp-serve-crt.pem"
 fi
 
 ##############################################################################
