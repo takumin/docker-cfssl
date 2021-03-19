@@ -45,12 +45,6 @@ BUILD_ARGS += --build-arg HTTPS_PROXY=${HTTPS_PROXY}
 endif
 
 #
-# Docker Run Variables
-#
-
-RUN_ARGS ?= env ALPINE_BRANCH=$(ALPINE_BRANCH) GOLANG_BRANCH=$(GOLANG_BRANCH) CFSSL_VERSION=$(CFSSL_VERSION)
-
-#
 # Default Rules
 #
 
@@ -63,8 +57,8 @@ all: build up
 
 .PHONY: build
 build:
-	@docker build --cache-from docker.io/library/golang:$(GOLANG_BRANCH) --target build -t $(REPOSITORY):build $(BUILD_ARGS) .
-	@docker build --cache-from docker.io/library/alpine:$(ALPINE_BRANCH) --target service -t $(REPOSITORY):latest $(BUILD_ARGS) .
+	@docker build --target build -t $(REPOSITORY):build $(BUILD_ARGS) .
+	@docker build --target service -t $(REPOSITORY):latest $(BUILD_ARGS) .
 
 #
 # Test Rules
@@ -72,7 +66,7 @@ build:
 
 .PHONY: up
 up: down
-	@$(RUN_ARGS) docker-compose up -d
+	@docker-compose up -d
 
 .PHONY: down
 down:
