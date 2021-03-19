@@ -15,7 +15,7 @@ RUN rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 ENV GOOS="linux"
 ENV GOARCH="amd64"
 ENV GOBIN="/usr/local/bin"
-ENV LDFLAGS="-s -w -extldflags \"-static\""
+ENV LDFLAGS="-s -w -extldflags '-static'"
 
 WORKDIR /go/src/bitbucket.org/liamstask/goose
 COPY goose .
